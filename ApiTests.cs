@@ -59,7 +59,25 @@ namespace GitHubApiTests
             Assert.That(issue.title, Is.Not.Empty, "Issue name");
             Assert.That(issue.number, Is.GreaterThan(0), "Issue number");
             }
+        }
+
+        [Test]
+        public void Test_IssueLabels()
+        {
+            var client = new RestClient("https://api.github.com");
+            var request = new RestRequest("repos/petyababukova/postman/issues/41/labels");
+            var response = client.Execute(request);
+            var labels = JsonSerializer.Deserialize<List<TestIssue>>(response.Content);
+
+
+
+            foreach (var label in labels)
+            {
+                Assert.That(label, Is.Not.Null, "Existing labels: ");
+                
+            }
 
         }
+
     }
 }
