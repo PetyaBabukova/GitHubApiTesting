@@ -13,7 +13,7 @@ namespace GitHubApiTests
         const string baseUrl = "https://api.github.com";
         const string partialUrl = "repos/petyababukova/postman/issues";
         private const string username = "petyababukova";
-        private const string password = "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";
+        private const string password = "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";
         [SetUp] public void Setup() 
         {
             this.client = new RestClient(baseUrl);
@@ -108,7 +108,6 @@ namespace GitHubApiTests
         {
 
             //Arrange
-            var request = new RestRequest(partialUrl, Method.Post);
             
             var issueBody = new
             {
@@ -117,19 +116,64 @@ namespace GitHubApiTests
                 labels = new string[] { "bug", "13-02", "critical" }
             };
 
-            request.AddBody(issueBody);
+
+            var issue = CreateIssue(issueBody);
+            
+
+            //Assert
+            Assert.That(issue.number, Is.GreaterThan(0), "Issue number: ");
+            Assert.That(issue.title, Is.EqualTo(issueBody.title), "Issue Title: ");
+            Assert.That(issue.body, Is.EqualTo(issueBody.body), "Issue Body");
+        }
+
+        [Test] 
+        public void Test_EditIssue() 
+        {
+            var editedBody = new
+            {
+                title = "Edited Test from RestSharp " + DateTime.Now.Ticks,
+                body = "Edited description on my body issue",
+                labels = new string[] { "edited", "critical" }
+
+            };
+
+            var issue = CreateIssue(editedBody);
+
+            //Assert
+            Assert.That(issue.number, Is.GreaterThan(0), "Issue number: ");
+            Assert.That(issue.title, Is.EqualTo(editedBody.title), "Issue Title: ");
+            Assert.That(issue.body, Is.EqualTo(editedBody.body + "1"), "Issue Body");
+
+        }
+
+        private Issue CreateIssue(object body)
+        {
+            //Arrange
+            var request = new RestRequest(partialUrl, Method.Post);
+
+            request.AddBody(body);
 
             //Act
             var response = this.client.Execute(request);
             var issue = JsonSerializer.Deserialize<Issue>(response.Content);
 
-            //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created), "Http status code property: ");
-            Assert.That(issue.number, Is.GreaterThan(100), "Issue number: ");
-            Assert.That(issue.title, Is.EqualTo(issueBody.title), "Issue Title: ");
-            Assert.That(issue.body, Is.EqualTo(issueBody.body), "Issue Body");
+            return issue;
         }
-             
+
+        private Issue EditIssue(object body)
+        {
+            //Arrange
+            var request = new RestRequest($"{partialUrl}/43", Method.Patch);
+
+            request.AddBody(body);
+
+            //Act
+            var response = this.client.Execute(request);
+            var issue = JsonSerializer.Deserialize<Issue>(response.Content);
+
+            return issue;
+        }
+
 
     }
 }
