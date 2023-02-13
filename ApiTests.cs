@@ -137,12 +137,12 @@ namespace GitHubApiTests
 
             };
 
-            var issue = CreateIssue(editedBody);
+            var issue = EditIssue(editedBody);
 
             //Assert
             Assert.That(issue.number, Is.GreaterThan(0), "Issue number: ");
             Assert.That(issue.title, Is.EqualTo(editedBody.title), "Issue Title: ");
-            Assert.That(issue.body, Is.EqualTo(editedBody.body + "1"), "Issue Body");
+            Assert.That(issue.body, Is.EqualTo(editedBody.body), "Issue Body");
 
         }
 
