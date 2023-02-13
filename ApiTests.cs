@@ -174,6 +174,22 @@ namespace GitHubApiTests
             return issue;
         }
 
+        [TestCase("US", "90210", "United States")]
+        [TestCase("BG", "1000", "Bulgaria")]
+        [TestCase("DE", "01067", "Germany")]
+        [TestCase("AT", "1010", "Austria")]
+        public void Test_Zippopotamus_DD(string countyCode, string zipCode, string expectedCountry)
+        {
+            var restClient = new RestClient("https://www.zippopotam.us/");
+            var request = new RestRequest(countyCode + "/" + zipCode, Method.Get);
 
+            var response = restClient.Execute(request);
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Http status code property: ");
+
+            var location = JsonSerializer.Deserialize<Locations>(response.Content);
+
+            Assert.That(location.Country, Is.EqualTo(expectedCountry));
+        }
     }
 }
