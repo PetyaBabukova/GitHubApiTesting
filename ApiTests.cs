@@ -1,4 +1,5 @@
 using RestSharp;
+using RestSharp.Authenticators;
 using RestSharpDemoProject;
 using System.Net;
 using System.Text.Json;
@@ -7,14 +8,28 @@ namespace GitHubApiTests
 {
     public class ApiTests
     {
-        
+
+        private RestClient client;
+        const string baseUrl = "https://api.github.com";
+        const string partialUrl = "repos/petyababukova/postman/issues";
+        private const string username = "petyababukova";
+        private const string password = "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";
+        [SetUp] public void Setup() 
+        {
+            this.client = new RestClient(baseUrl);
+            this.client.Authenticator = new HttpBasicAuthenticator(username, password);
+            //this.client.Timeout = 2000; //It doesn`t work here, So, in the test it`s work
+        }
+
         [Test]
+        [Timeout(2000)]
         public void Test_GetSingleIsssue()
         {
-            var client = new RestClient("https://api.github.com");
-            var request = new RestRequest("repos/petyababukova/postman/issues/42");
+            
+            var request = new RestRequest($"{partialUrl}/42");
+            //var request = new RestRequest(partialUrl + "/42");
 
-            var response = client.Execute(request);
+            var response = this.client.Execute(request);
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Http status code property: ");
 
@@ -28,10 +43,9 @@ namespace GitHubApiTests
         [Test]
         public void Test_GetSingleIsssueWithLabels()
         {
-            var client = new RestClient("https://api.github.com");
-            var request = new RestRequest("repos/petyababukova/postman/issues/42");
+            var request = new RestRequest($"{partialUrl}/42");
 
-            var response = client.Execute(request);
+            var response = this.client.Execute(request);
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Http status code property: ");
 
@@ -47,10 +61,9 @@ namespace GitHubApiTests
         [Test]
         public void Test_GetIsssueLabels()
         {
-            var client = new RestClient("https://api.github.com");
-            var request = new RestRequest("repos/petyababukova/postman/issues/43/labels");
+            var request = new RestRequest($"{partialUrl}/43/labels");
 
-            var response = client.Execute(request);
+            var response = this.client.Execute(request);
 
             var labels = JsonSerializer.Deserialize<List<Labels>>(response.Content);
 
@@ -73,10 +86,9 @@ namespace GitHubApiTests
 
         public void Test_GetAllIsssues()
         {
-            var client = new RestClient("https://api.github.com");
             var request = new RestRequest("repos/petyababukova/postman/issues");
 
-            var response = client.Execute(request);
+            var response = this.client.Execute(request);
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "Http status code property: ");
 
@@ -89,7 +101,33 @@ namespace GitHubApiTests
             Assert.That(issue.number, Is.GreaterThan(0), "Issue number");
             }
 
+        }
 
+        [Test]
+        public void Test_CreateNewIssue()
+        {
+
+            //Arrange
+            var request = new RestRequest(partialUrl, Method.Post);
+            
+            var issueBody = new
+            {
+                title = "Test from RestSharp " + DateTime.Now.Ticks,
+                body = "Some description on my body issue",
+                labels = new string[] { "bug", "13-02", "critical" }
+            };
+
+            request.AddBody(issueBody);
+
+            //Act
+            var response = this.client.Execute(request);
+            var issue = JsonSerializer.Deserialize<Issue>(response.Content);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created), "Http status code property: ");
+            Assert.That(issue.number, Is.GreaterThan(100), "Issue number: ");
+            Assert.That(issue.title, Is.EqualTo(issueBody.title), "Issue Title: ");
+            Assert.That(issue.body, Is.EqualTo(issueBody.body), "Issue Body");
         }
              
 
