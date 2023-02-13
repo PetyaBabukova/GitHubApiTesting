@@ -23,4 +23,8 @@
     <PackageReference Include="RestSharp" Version="108.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RestSharpDemoProject\RestSharpDemoProject.csproj" />
+  </ItemGroup>
+
 </Project>
